@@ -7,10 +7,15 @@ services:
 
   web:
     build: .
+    # These volumes are to allow live editing of the code and auto-restart with nodemon,
+    # but when "in production" they become unnecessary:
     volumes:
       - type: bind
-        source: ./app
-        target: /var/app
+        source: ./app/index.ts
+        target: /var/app/index.ts
+      - type: bind
+        source: ./app/api
+        target: /var/app/api
 
     ports:
       - "8000:8000"

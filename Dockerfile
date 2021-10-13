@@ -6,10 +6,14 @@ RUN ["mkdir", "/var/app"]
 RUN ["chown", "appuser:appuser", "/var/app"]
 USER appuser
 
+# Copy only package list here so that node_modules cache can be kept
+# even if the code is modified as long as the package list remains the same.
 COPY app/package.json /var/app/package.json
 COPY app/package-lock.json /var/app/package-lock.json
 WORKDIR /var/app
 RUN ["npm", "install"]
+
+COPY app /var/app
 
 # Run the app
 CMD ["npm", "start"]
