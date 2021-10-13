@@ -1,11 +1,25 @@
 import { Document } from "../common/db";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
+import { THUMBNAILS_DIR } from "../common/localstorage";
+import { createWriteStream } from "fs";
 
 const CHECK_FOR_NEW_TASKS_EVERY = 5000;
 
-async function markDownloadAsFaied(document: Document) {
+async function markDownloadAsFailed(document: Document) {
   await document.update({
     downloadSuccessful: false,
+  });
+}
+
+async function pipeToDisk(response: AxiosResponse, downloadPath: string) {
+  const writer = createWriteStream(downloadPath);
+
+  const data = response.data;
+  data.pipe(writer);
+
+  return new Promise((resolve, reject) => {
+    writer.on("finish", resolve);
+    writer.on("error", reject);
   });
 }
 
@@ -14,9 +28,11 @@ async function downloadDocument(document: Document) {
 
   let response;
   try {
-    response = await axios.get(url);
+    response = await axios.get(url, {
+      responseType: "stream",
+    });
   } catch (error) {
-    await markDownloadAsFaied(document);
+    await markDownloadAsFailed(document);
     console.log(
       document.originalUrl + " failed to download. Marking this URL as failed."
     );
@@ -25,12 +41,14 @@ async function downloadDocument(document: Document) {
 
   const contentType = response.headers["content-type"];
   if (contentType != "application/pdf") {
-    await markDownloadAsFaied(document);
+    await markDownloadAsFailed(document);
     console.log(
       document.originalUrl + " has incorrect content type: " + contentType
     );
     return;
   }
+
+  await pipeToDisk(response, THUMBNAILS_DIR + "/temp.pdf");
 }
 
 async function handlePendingTasks() {
