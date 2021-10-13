@@ -1,18 +1,25 @@
 import express from "express";
 import { downloadLink } from "./api/download";
 import { initDB } from "./common/db";
+import morgan from "morgan";
 
 const app = express();
 const PORT = 8000;
 
+app.use(morgan("dev"));
 app.use("/static", express.static("static"));
-
 app.use(express.json());
 
 app.get("/", (req, res) =>
   res.send("This is Raphaël's technical challenge API!")
 );
-app.post("/download-link", downloadLink);
+app.post("/download-link", async (req, res, next) => {
+  try {
+    await downloadLink(req, res);
+  } catch (error) {
+    next(error);
+  }
+});
 
 (async () => {
   // Connect to the DB and create the necessary tables
