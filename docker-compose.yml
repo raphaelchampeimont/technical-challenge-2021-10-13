@@ -4,6 +4,8 @@ services:
     image: postgres:14
     environment:
       POSTGRES_PASSWORD: mydbpass
+    ports:
+      - "5432:5432"
 
   web:
     build: .
@@ -16,6 +18,9 @@ services:
       - type: bind
         source: ./app/api
         target: /var/app/api
+      - type: bind
+        source: ./app/common
+        target: /var/app/common
 
     ports:
       - "8000:8000"

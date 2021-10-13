@@ -1,7 +1,10 @@
 import { Request, Response, NextFunction } from "express";
+import { Document } from "../common/db";
 
-export function downloadLink(req: Request, res: Response, next: NextFunction) {
-  console.log(req.body);
+export async function downloadLink(req: Request, res: Response) {
+  await Document.create({
+    originalUrl: req.body.url,
+  });
 
-  res.send("download");
+  await res.json({});
 }
