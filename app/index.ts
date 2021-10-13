@@ -2,6 +2,7 @@ import express from "express";
 import { downloadLink } from "./api/download";
 import { initDB } from "./common/db";
 import morgan from "morgan";
+import { runPeriodically } from "./cron/cron";
 
 const app = express();
 const PORT = 8000;
@@ -27,5 +28,7 @@ app.post("/download-link", async (req, res, next) => {
   // Now the DB is ready, listen to requests
   app.listen(PORT, () => {
     console.log(`⚡️[server]: Server is running at https://localhost:${PORT}`);
+    // Start the "cron" process
+    setTimeout(runPeriodically, 0);
   });
 })();
