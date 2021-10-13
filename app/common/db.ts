@@ -7,7 +7,7 @@ export const sequelize = new Sequelize(
 export class Document extends Model {}
 Document.init(
   {
-    originalUrl: { type: DataTypes.STRING, primaryKey: true },
+    originalUrl: { type: DataTypes.STRING(2048), primaryKey: true },
     originalFileHash: DataTypes.STRING,
     thumbnailAvailable: DataTypes.BOOLEAN,
   },
