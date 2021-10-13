@@ -1,7 +1,8 @@
 import { Document } from "../common/db";
-import axios, { AxiosResponse } from "axios";
-import { THUMBNAILS_DIR } from "../common/localstorage";
+import * as superagent from "superagent";
+import { LOCAL_STORAGE_DIR } from "../common/localstorage";
 import { createWriteStream } from "fs";
+import { writeFile } from "fs/promises";
 
 const CHECK_FOR_NEW_TASKS_EVERY = 5000;
 
@@ -11,26 +12,12 @@ async function markDownloadAsFailed(document: Document) {
   });
 }
 
-async function pipeToDisk(response: AxiosResponse, downloadPath: string) {
-  const writer = createWriteStream(downloadPath);
-
-  const data = response.data;
-  data.pipe(writer);
-
-  return new Promise((resolve, reject) => {
-    writer.on("finish", resolve);
-    writer.on("error", reject);
-  });
-}
-
 async function downloadDocument(document: Document) {
   let url = document.originalUrl;
 
   let response;
   try {
-    response = await axios.get(url, {
-      responseType: "stream",
-    });
+    response = await superagent.get(url).set("accept", "application/pdf");
   } catch (error) {
     await markDownloadAsFailed(document);
     console.log(
@@ -39,16 +26,13 @@ async function downloadDocument(document: Document) {
     return;
   }
 
-  const contentType = response.headers["content-type"];
-  if (contentType != "application/pdf") {
+  if (response.type != "application/pdf") {
     await markDownloadAsFailed(document);
-    console.log(
-      document.originalUrl + " has incorrect content type: " + contentType
-    );
+    console.log(document.originalUrl + " has incorrect content type");
     return;
   }
 
-  await pipeToDisk(response, THUMBNAILS_DIR + "/temp.pdf");
+  await writeFile(LOCAL_STORAGE_DIR + "/temp.pdf", response.body);
 }
 
 async function handlePendingTasks() {

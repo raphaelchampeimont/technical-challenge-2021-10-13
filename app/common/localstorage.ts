@@ -1,6 +1,6 @@
 import { mkdir, rmdir } from "fs/promises";
 
-const LOCAL_STORAGE_DIR = "./localstorage";
+export const LOCAL_STORAGE_DIR = "./localstorage";
 export const THUMBNAILS_DIR = LOCAL_STORAGE_DIR + "/thumbnails";
 
 export async function initStorage() {
