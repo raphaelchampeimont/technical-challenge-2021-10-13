@@ -3,18 +3,33 @@ import axios from "axios";
 
 const CHECK_FOR_NEW_TASKS_EVERY = 5000;
 
+async function markDownloadAsFaied(document: Document) {
+  await document.update({
+    downloadSuccessful: false,
+  });
+}
+
 async function downloadDocument(document: Document) {
   let url = document.originalUrl;
 
+  let response;
   try {
-    const response = await axios.get(url);
+    response = await axios.get(url);
   } catch (error) {
-    document.update({
-      downloadSuccessful: false,
-    });
+    await markDownloadAsFaied(document);
     console.log(
       document.originalUrl + " failed to download. Marking this URL as failed."
     );
+    return;
+  }
+
+  const contentType = response.headers["content-type"];
+  if (contentType != "application/pdf") {
+    await markDownloadAsFaied(document);
+    console.log(
+      document.originalUrl + " has incorrect content type: " + contentType
+    );
+    return;
   }
 }
 

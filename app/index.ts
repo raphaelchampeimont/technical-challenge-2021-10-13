@@ -3,6 +3,7 @@ import { downloadLink } from "./api/download";
 import { initDB } from "./common/db";
 import morgan from "morgan";
 import { runPeriodically } from "./cron/cron";
+import { initStorage } from "./common/localstorage";
 
 const app = express();
 const PORT = 8000;
@@ -22,13 +23,21 @@ app.post("/download-link", async (req, res, next) => {
   }
 });
 
-(async () => {
+async function main() {
   // Connect to the DB and create the necessary tables
   await initDB();
+  // Init local storage
+  await initStorage();
+
   // Now the DB is ready, listen to requests
   app.listen(PORT, () => {
     console.log(`⚡️[server]: Server is running at https://localhost:${PORT}`);
     // Start the "cron" process
     setTimeout(runPeriodically, 0);
   });
-})();
+}
+
+main().catch((error) => {
+  console.error("FATAL ERROR:");
+  console.error(error);
+});

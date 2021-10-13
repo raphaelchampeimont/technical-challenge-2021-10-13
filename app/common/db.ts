@@ -24,6 +24,9 @@ Document.init(
 export async function initDB() {
   await sequelize.authenticate();
   console.log("Authentication with DB successful.");
-  await sequelize.sync({ alter: true });
+
+  // We use force: true to clear the whole DB at every start, because it makes it easier to test the app manually, but in the real world we would not do that of course.
+  await sequelize.sync({ force: true });
+
   console.log("Synchronization of data structure in DB successful.");
 }
