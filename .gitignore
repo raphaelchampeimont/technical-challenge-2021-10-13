@@ -105,3 +105,6 @@ dist
 
 # Locally stored PDF files
 app/localstorage
+
+# MacOS
+.DS_Store

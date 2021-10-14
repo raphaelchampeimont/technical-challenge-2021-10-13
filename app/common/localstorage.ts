@@ -12,5 +12,5 @@ export async function initStorage() {
     recursive: true,
   });
   await mkdir(THUMBNAILS_DIR);
-  console.log("Local storage ready");
+  console.log("Local storage ready in " + LOCAL_STORAGE_DIR);
 }

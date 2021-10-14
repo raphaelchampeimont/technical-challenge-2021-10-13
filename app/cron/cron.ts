@@ -1,44 +1,75 @@
 import { Document } from "../common/db";
-import * as superagent from "superagent";
-import { LOCAL_STORAGE_DIR } from "../common/localstorage";
-import { createWriteStream } from "fs";
-import { writeFile } from "fs/promises";
+import { LOCAL_STORAGE_DIR, THUMBNAILS_DIR } from "../common/localstorage";
+import { createWriteStream, WriteStream } from "fs";
+import { rm, copyFile } from "fs/promises";
+import * as http from "http";
+import { promisify } from "util";
+import { exec } from "child_process";
 
 const CHECK_FOR_NEW_TASKS_EVERY = 5000;
 
-async function markDownloadAsFailed(document: Document) {
+async function markFileAsFailed(document: Document) {
   await document.update({
-    downloadSuccessful: false,
+    thumbnailSuccessful: false,
   });
 }
 
+async function markFileAsSuccessful(document: Document) {
+  await document.update({
+    thumbnailSuccessful: true,
+  });
+}
+
+function downloadPDF(url: string, destpath: string, callback: () => void) {
+  const file = createWriteStream(destpath);
+  const request = http.get(url, (response) => {
+    response.pipe(file);
+    return callback();
+  });
+}
+
+const downloadPDFPromise = promisify(downloadPDF);
+const execPromise = promisify(exec);
+
 async function downloadDocument(document: Document) {
   let url = document.originalUrl;
+  const ORIGINAL_TEMP_FILE = LOCAL_STORAGE_DIR + "/temp_download.pdf";
+  const THUMBNAIL_TEMP_FILE = LOCAL_STORAGE_DIR + "/temp_thumbnail.png";
 
-  let response;
-  try {
-    response = await superagent.get(url).set("accept", "application/pdf");
-  } catch (error) {
-    await markDownloadAsFailed(document);
-    console.log(
-      document.originalUrl + " failed to download. Marking this URL as failed."
-    );
-    return;
-  }
+  console.log("Downloading and processing " + url);
 
-  if (response.type != "application/pdf") {
-    await markDownloadAsFailed(document);
-    console.log(document.originalUrl + " has incorrect content type");
-    return;
-  }
+  // Cleanup any previous temp file if any is present
+  await rm(ORIGINAL_TEMP_FILE, { force: true });
+  await rm(THUMBNAIL_TEMP_FILE, { force: true });
 
-  await writeFile(LOCAL_STORAGE_DIR + "/temp.pdf", response.body);
+  await downloadPDFPromise(url, ORIGINAL_TEMP_FILE);
+
+  await execPromise(
+    "convert -thumbnail 400x400 " +
+      ORIGINAL_TEMP_FILE +
+      "[0] " +
+      THUMBNAIL_TEMP_FILE
+  );
+
+  //await rm(ORIGINAL_TEMP_FILE);
+
+  await markFileAsSuccessful(document);
+
+  await copyFile(
+    THUMBNAIL_TEMP_FILE,
+    THUMBNAILS_DIR + "/" + document.id + ".png"
+  );
+
+  await rm(ORIGINAL_TEMP_FILE, { force: true });
+  await rm(THUMBNAIL_TEMP_FILE, { force: true });
+
+  console.log("Thumbnail for " + url + " successfully created");
 }
 
 async function handlePendingTasks() {
   const documentsToDownload = await Document.findAll({
     where: {
-      downloadSuccessful: null,
+      thumbnailSuccessful: null,
     },
   });
   if (documentsToDownload.length > 0) {

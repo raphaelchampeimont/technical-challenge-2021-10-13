@@ -1,7 +1,8 @@
 FROM node:14
 
-# apt-get update and install must be together for caching to work properly
-RUN apt-get update && apt-get install imagemagick
+# Install ImageMagick and Ghostscript to make PDF thumbnails
+# apt-get update and install must be called together for Docker caching to work properly
+RUN apt-get update && apt-get install -y imagemagick ghostscript
 
 # Create a regular user to avoid running the app as root
 RUN useradd appuser -s /bin/bash -m

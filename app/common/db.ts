@@ -5,18 +5,25 @@ export const sequelize = new Sequelize(
 );
 
 interface DocumentAttributes {
+  id: number;
   originalUrl: string;
-  downloadSuccessful: boolean | null;
+  thumbnailSuccessful: boolean | null;
 }
 
 export class Document extends Model implements DocumentAttributes {
+  public id!: number;
   public originalUrl!: string;
-  public downloadSuccessful!: boolean | null;
+  public thumbnailSuccessful!: boolean | null;
 }
 Document.init(
   {
-    originalUrl: { type: DataTypes.STRING(2048), primaryKey: true },
-    downloadSuccessful: DataTypes.BOOLEAN,
+    //originalUrl: { type: DataTypes.STRING(2048), primaryKey: true },
+    originalUrl: {
+      type: DataTypes.STRING(2048),
+      unique: true,
+      allowNull: false,
+    },
+    thumbnailSuccessful: DataTypes.BOOLEAN,
   },
   { sequelize, modelName: "document" }
 );
