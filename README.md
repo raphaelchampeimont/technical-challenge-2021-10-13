@@ -18,6 +18,6 @@ With a multi-page PDF (self-hosted on the app for testing):
 
     curl -XPOST http://localhost:8000/download-link -H 'Content-Type: application/json' -d '{"url":"http://localhost:8000/static/test_multipage.pdf"}'
 
-With a "real" PDF from an online source:
+With a PDF from an online source and in HTTPS:
 
-    curl -XPOST http://localhost:8000/download-link -H 'Content-Type: application/json' -d '{"url":"https://upload.wikimedia.org/wikipedia/commons/b/ba/Global_content_moderation_on_Wikipedia.pdf"}'
+    curl -XPOST http://localhost:8000/download-link -H 'Content-Type: application/json' -d '{"url":"https://www.almacha.org/almacha/phd-RC.pdf"}'

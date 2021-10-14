@@ -6,7 +6,10 @@ import * as http from "http";
 import { promisify } from "util";
 import { exec } from "child_process";
 
-const CHECK_FOR_NEW_TASKS_EVERY = 5000;
+// FIXME: I know the "request" module is deprecated, but I could'd make axios, superagent or "got" work with TypeScript.
+import * as request from "request";
+
+const CHECK_FOR_NEW_TASKS_EVERY = 1000;
 
 async function markDocumentAsFailed(document: Document) {
   await document.update({
@@ -20,12 +23,20 @@ async function markDocumentAsSuccessful(document: Document) {
   });
 }
 
-function downloadPDF(url: string, destpath: string, callback: () => void) {
-  const file = createWriteStream(destpath);
-  const request = http.get(url, (response) => {
-    response.pipe(file);
-    return callback();
-  });
+async function downloadPDF(
+  url: string,
+  destpath: string,
+  callback: (error?: Error) => void
+) {
+  request
+    .get(url)
+    .on("response", (response) => {
+      callback();
+    })
+    .on("error", (error) => {
+      callback(error);
+    })
+    .pipe(createWriteStream(destpath));
 }
 
 const downloadPDFPromise = promisify(downloadPDF);
