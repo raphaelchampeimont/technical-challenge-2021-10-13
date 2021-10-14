@@ -1,7 +1,11 @@
 import { Sequelize, Model, DataTypes } from "sequelize";
 
 export const sequelize = new Sequelize(
-  "postgres://postgres:mydbpass@db:5432/postgres"
+  "postgres://postgres:mydbpass@db:5432/postgres",
+  {
+    // Don't print all SQL queries, to make log more readable
+    logging: false,
+  }
 );
 
 interface DocumentAttributes {
