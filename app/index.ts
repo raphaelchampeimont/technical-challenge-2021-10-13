@@ -1,5 +1,5 @@
 import express from "express";
-import { downloadLink } from "./api/download";
+import { downloadLink } from "./api/download_link";
 import { initDB } from "./common/db";
 import morgan from "morgan";
 import { runPeriodically } from "./cron/cron";
