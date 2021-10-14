@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon index.ts",
-    "test": "jest --silent"
+    "test": "jest --silent --runInBand"
   },
   "author": "Raphaël Champeimont",
   "dependencies": {
