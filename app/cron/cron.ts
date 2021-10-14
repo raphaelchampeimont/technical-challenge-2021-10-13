@@ -2,9 +2,13 @@ import { Document } from "../common/db";
 import { LOCAL_STORAGE_DIR, THUMBNAILS_DIR } from "../common/localstorage";
 import { createWriteStream, WriteStream } from "fs";
 import { rm, copyFile } from "fs/promises";
-import * as http from "http";
 import { promisify } from "util";
 import { exec } from "child_process";
+import { pipeline } from "stream";
+import stream from "got";
+
+const pipelinePromise = promisify(pipeline);
+const execPromise = promisify(exec);
 
 const CHECK_FOR_NEW_TASKS_EVERY = 5000;
 
@@ -20,16 +24,13 @@ async function markDocumentAsSuccessful(document: Document) {
   });
 }
 
-function downloadPDF(url: string, destpath: string, callback: () => void) {
-  const file = createWriteStream(destpath);
-  const request = http.get(url, (response) => {
-    response.pipe(file);
-    return callback();
-  });
+async function downloadPDF(
+  url: string,
+  destpath: string,
+  callback: () => void
+) {
+  await pipelinePromise(stream(url), createWriteStream(destpath));
 }
-
-const downloadPDFPromise = promisify(downloadPDF);
-const execPromise = promisify(exec);
 
 async function downloadAndProcessDocument(document: Document) {
   let url = document.originalUrl;
@@ -42,7 +43,7 @@ async function downloadAndProcessDocument(document: Document) {
   await rm(ORIGINAL_TEMP_FILE, { force: true });
   await rm(THUMBNAIL_TEMP_FILE, { force: true });
 
-  await downloadPDFPromise(url, ORIGINAL_TEMP_FILE);
+  await downloadPDF(url, ORIGINAL_TEMP_FILE);
 
   await execPromise(
     "convert -thumbnail 400x400 " +
