@@ -28,7 +28,7 @@ With a PDF from an online source and in HTTPS:
 
 ## How to run the test suite
 
-To run the test suite, you can start docker-compose with:
+To run the test suite, stop any running docker-compose and instead run it with:
 
     docker-compose -f docker-compose-test.yml build && docker-compose -f docker-compose-test.yml up
 
