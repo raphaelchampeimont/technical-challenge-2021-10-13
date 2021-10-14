@@ -3,7 +3,8 @@
 ## How to run it
 
 All you need is to have Docker installed. Then run:
-docker-compose build && docker-compose up
+
+    docker-compose build && docker-compose up
 
 ## How to test it
 
