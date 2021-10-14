@@ -1,0 +1,35 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:14
+    environment:
+      POSTGRES_PASSWORD: mydbpass
+    ports:
+      - "5432:5432"
+
+  web:
+    build: .
+    volumes:
+      # These volumes are to allow live editing of the code and auto-restart with nodemon,
+      # but when "in production" they become unnecessary:
+      - type: bind
+        source: ./app/index.ts
+        target: /var/app/index.ts
+      - type: bind
+        source: ./app/api
+        target: /var/app/api
+      - type: bind
+        source: ./app/cron
+        target: /var/app/cron
+      - type: bind
+        source: ./app/common
+        target: /var/app/common
+      # Binding localstorage to the host machine is not necessary but it allows for easier debug as we can look at the downloaded PDF files directly on the host machine
+      - type: bind
+        source: ./app/localstorage
+        target: /var/app/localstorage
+
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
