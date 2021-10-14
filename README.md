@@ -10,7 +10,7 @@ All you need is to have Docker installed. Then run:
 
     docker-compose build && docker-compose up
 
-## How to test it
+## How to test it manually
 
 Example of file upload (self-hosted on the app for testing):
 
@@ -25,3 +25,9 @@ With a multi-page PDF (self-hosted on the app for testing):
 With a PDF from an online source and in HTTPS:
 
     curl -XPOST http://localhost:8000/download-link -H 'Content-Type: application/json' -d '{"url":"https://www.almacha.org/almacha/phd-RC.pdf"}'
+
+## How to run the test suite
+
+Once the docker-compose is up and running, run:
+
+    docker exec -it technical-challenge-2021-10-13-web-1 npm test
