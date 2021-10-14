@@ -73,7 +73,7 @@ async function downloadAndProcessDocument(document: Document) {
   console.log("Thumbnail for " + url + " successfully created");
 }
 
-async function handlePendingTasks() {
+export async function handlePendingTasks() {
   const documentsToDownload = await Document.findAll({
     where: {
       thumbnailSuccessful: null,
@@ -87,8 +87,9 @@ async function handlePendingTasks() {
       try {
         await downloadAndProcessDocument(document);
       } catch (error) {
-        markDocumentAsFailed(document);
-        throw error;
+        console.error(error);
+        await markDocumentAsFailed(document);
+        continue; // go to next document to process
       }
       await markDocumentAsSuccessful(document);
     }
