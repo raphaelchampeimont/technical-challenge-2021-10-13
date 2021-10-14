@@ -28,6 +28,8 @@ With a PDF from an online source and in HTTPS:
 
 ## How to run the test suite
 
-Once the docker-compose is up and running, run:
+To run the test suite, you can start docker-compose with:
 
-    docker exec -it technical-challenge-2021-10-13-web-1 npm test
+    docker-compose -f docker-compose-test.yml build && docker-compose -f docker-compose-test.yml up
+
+This will start Postgres but not the app, which is replaced by the test suite run.
