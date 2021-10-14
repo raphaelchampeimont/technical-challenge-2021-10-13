@@ -17,7 +17,6 @@ export class Document extends Model implements DocumentAttributes {
 }
 Document.init(
   {
-    //originalUrl: { type: DataTypes.STRING(2048), primaryKey: true },
     originalUrl: {
       type: DataTypes.STRING(2048),
       unique: true,

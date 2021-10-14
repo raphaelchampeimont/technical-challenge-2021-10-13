@@ -8,13 +8,13 @@ import { exec } from "child_process";
 
 const CHECK_FOR_NEW_TASKS_EVERY = 5000;
 
-async function markFileAsFailed(document: Document) {
+async function markDocumentAsFailed(document: Document) {
   await document.update({
     thumbnailSuccessful: false,
   });
 }
 
-async function markFileAsSuccessful(document: Document) {
+async function markDocumentAsSuccessful(document: Document) {
   await document.update({
     thumbnailSuccessful: true,
   });
@@ -31,7 +31,7 @@ function downloadPDF(url: string, destpath: string, callback: () => void) {
 const downloadPDFPromise = promisify(downloadPDF);
 const execPromise = promisify(exec);
 
-async function downloadDocument(document: Document) {
+async function downloadAndProcessDocument(document: Document) {
   let url = document.originalUrl;
   const ORIGINAL_TEMP_FILE = LOCAL_STORAGE_DIR + "/temp_download.pdf";
   const THUMBNAIL_TEMP_FILE = LOCAL_STORAGE_DIR + "/temp_thumbnail.png";
@@ -50,10 +50,6 @@ async function downloadDocument(document: Document) {
       "[0] " +
       THUMBNAIL_TEMP_FILE
   );
-
-  //await rm(ORIGINAL_TEMP_FILE);
-
-  await markFileAsSuccessful(document);
 
   await copyFile(
     THUMBNAIL_TEMP_FILE,
@@ -77,7 +73,13 @@ async function handlePendingTasks() {
       documentsToDownload.length + " document(s) need to be downloaded"
     );
     for (let document of documentsToDownload) {
-      await downloadDocument(document);
+      try {
+        await downloadAndProcessDocument(document);
+      } catch (error) {
+        markDocumentAsFailed(document);
+        throw error;
+      }
+      await markDocumentAsSuccessful(document);
     }
   }
 }
