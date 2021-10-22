@@ -2,12 +2,10 @@ import { Document } from "../common/db";
 import { LOCAL_STORAGE_DIR, THUMBNAILS_DIR } from "../common/localstorage";
 import { createWriteStream, WriteStream } from "fs";
 import { rm, copyFile } from "fs/promises";
-import * as http from "http";
 import { promisify } from "util";
 import { exec } from "child_process";
-
-// FIXME: I know the "request" module is deprecated, but I could'd make axios, superagent or "got" work with TypeScript.
-import * as request from "request";
+import axios from "axios";
+import { AxiosResponse } from "axios";
 
 const CHECK_FOR_NEW_TASKS_EVERY = 1000;
 
@@ -23,23 +21,21 @@ async function markDocumentAsSuccessful(document: Document) {
   });
 }
 
-async function downloadPDF(
-  url: string,
-  destpath: string,
-  callback: (error?: Error) => void
-) {
-  request
-    .get(url)
-    .on("response", (response) => {
-      callback();
-    })
-    .on("error", (error) => {
-      callback(error);
-    })
-    .pipe(createWriteStream(destpath));
+async function downloadPDF(url: string, destinationPath: string) {
+  const writer = createWriteStream(destinationPath);
+
+  const response: AxiosResponse<any> = await axios.get(url, {
+    responseType: "stream",
+  });
+
+  response.data.pipe(writer);
+
+  return new Promise((resolve, reject) => {
+    writer.on("finish", resolve);
+    writer.on("error", reject);
+  });
 }
 
-const downloadPDFPromise = promisify(downloadPDF);
 const execPromise = promisify(exec);
 
 async function downloadAndProcessDocument(document: Document) {
@@ -53,7 +49,7 @@ async function downloadAndProcessDocument(document: Document) {
   await rm(ORIGINAL_TEMP_FILE, { force: true });
   await rm(THUMBNAIL_TEMP_FILE, { force: true });
 
-  await downloadPDFPromise(url, ORIGINAL_TEMP_FILE);
+  await downloadPDF(url, ORIGINAL_TEMP_FILE);
 
   await execPromise(
     "convert -thumbnail 400x400 " +
